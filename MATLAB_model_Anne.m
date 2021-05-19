@@ -25,6 +25,8 @@ close all;
     k_tempex =0.03;                             %Tempex plate [W/(mK)]
     k_Cu = 400;                                 %Copper tube [W/(mK)]
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
+    k_pvc = 0.19;                               %PVC thermal conduc [W/(mK)]
+    k_polyFoil = 0.04;                          %Polyethylene foam foil [W/(mK)]
 %Specific heat
     c_water = 4186;                             %[J/kgK]
     c_Cu = 386;                                 %[J/kgK]
@@ -37,6 +39,14 @@ close all;
     L_TubeTempex = 0.4446626;                   %Total length of tube that's exposed to the tempex [m]
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
+%Measurements Heat storage vessel
+    D_pvc = 0.050;                              %Diameter PVC tube [m]
+    R_pvc1 = (D_pvc/2) - 0.0018;                %Inner Radius PVC tube [m]
+    R_pvc2 = (D_pvc/2);                         %Outer Radius PVC tube [m]
+    N_insLayers = 6;                            %Number of insulating polyethylene foam foil layers [m]
+    R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
+    L_pvc = 0.71;                               %PVC length [m]
+    A_HV = 2*pi*(R_pvc2+R_polyFoil)*L_pvc;      %Surface area Heat storage vessel
 %Measurements for in- and outlet connectors
     D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
     R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
@@ -110,7 +120,12 @@ for t=0:t_step:t_end
     m_HV_new = m_flow;                                                      %Mass of water added to the heat vessel during t_step
     T_HV_out = (m_HV_old*T_HV_out + m_HV_new*T_HV_in)/(m_HV_old+m_HV_new);  %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater
     
-    dQdt_HV_total = 0;
+    R_HV_PVC = R_pvc1/(k_pvc*(2*pi*R_pvc2*L_pvc));
+    R_HV_Cond =  (log((R_pvc2 + R_polyFoil)/R_pvc2)) / (k_polyFoil*A_HV);   %Thermal resitance of conduction through poly foam foil [K/W]
+    R_HV_Conv = 1 / (h_air*A_HV) ;                                          %Thermal resitance of convection outside poly foam foil [K/W]
+    R_HV_total = R_HV_PVC + R_HV_Cond + R_HV_Conv;                          %Total thermal resistance in series
+    
+    dQdt_HV_total = -((T_HV_out - T_sur ) / R_HV_total);                    %Heat loss
     
     delta_T = (dQdt_HV_total*t_step/(m_HV_water*c_water));
     T_HV_out = T_HV_out+delta_T;
