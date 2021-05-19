@@ -22,6 +22,7 @@ close all;
     k_air = 0.026;                              %Air [W/(mK)]
     k_tempex =0.03;                             %Tempex plate [W/(mK)]
     k_Cu = 400;                                 %Copper tube [W/(mK)]
+    k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
 %Specific heat
     c_water = 4186;                             %[J/kgK]
     c_Cu = 386;                                 %[J/kgK]
@@ -34,6 +35,12 @@ close all;
     L_TubeTempex = 0.4446626;                   %Total length of tube that's exposed to the tempex [m]
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
+%Measurements for in- and outlet connectors
+    D_Po = 0.012;        %Diameter of the polyurethane tube [m]
+    R_Po1 = 0.004;       %Inner radius of the polyurethane tube [m]
+    R_Po2 = 0.006;       %Outer radius of the polyurethane tube [m]
+    L_Tube_HV_to_SC = 3; %Estimated length of tube that goes from the heat storage vessel to the solar collector [m]
+    L_Tube_SC_to_HV = 3; %Estimated length of tube that goes from the solar collector to the heat storage vessel[m]]
 %Areas
     A_RadCu = 4*D_Cu*1.4+3*0.5*0.25*pi*(0.0898^2-0.0778^2)+2*0.012*0.15; %Sunlit area of the copper tube
     A_RadAl = 0.670*1.4 - 4*0.012*1.4;          %Sunlit area of the aluminum troughs
@@ -70,6 +77,10 @@ Steps = t_end/t_step;                                                       %Amo
 T_HV_table = zeros(3,Steps+1);                                              %Empty vector for T_HV_table. Row 1: time t. Row 2: T_HV_table. Row 3: dQdt_SC_total.
 T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                                                              %Beginning temperature of water in the heat vessel
+m_SC_water = 0.512; %Max volume of water in the solar collector
+m_HV_water = 1.2; %Max volume of water in the heat vessel %%%CHECK VALUE%%%%
+m_in_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_SC_to_HV ; %Max volume of water in the inlet tubing %%%CHECK VALUE%%%%
+m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ; %Max volume of water in the outlettubing %%%CHECK VALUE%%%%
 
 %%Tube Heat vessel --> Solar Collector%%
 m_PolyTube1_water = (1/4)*pi*D_PolyTube^2*L_PolyTube1*rho_w;                %Maximum amount of water in the tube [kg]
@@ -89,6 +100,20 @@ m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mas
 
 %%
 for t=0:t_step:t_end
+    %%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%
+    %Equations for the inlet Tubing%
+    %%%%%%%%%%%%%%%%%%%%%%%%%% 
+    m_in_old = m_in_tube - m_flow;                                          %Mass of water from t-t_step
+    m_in_new = m_flow;                                                      %Mass of water added to the inlet tubing during t_step
+    %T_HV_in = (m_in_old*T_HV_in + m_in_new*T_SC)/(m_in_old+m_in_new);       %Calculating the average temperature in the solar collector, taking into account the inflow from the vessel
+    
+    %Heat losses in inlet tubing%
+    R_Cond_tube_in =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
+    dQdt_tube_in = T_HV_in / R_Cond_tube_in;                                %Heat loss of conduction inlet tubing [W]
+    
+    delta_T_in = (dQdt_tube_in*t_step/(m_in_tube*c_water));
+    T_HV_in=T_HV_in+delta_T_in;
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %       Equations for the vessel       %
