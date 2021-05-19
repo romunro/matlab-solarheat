@@ -13,6 +13,8 @@ close all;
 
 %Natural costants:
     sigma = 5.67*10^(-8);                       %Stefan-Boltzmann constant
+%Convection
+    h_air = 2.5;                                    %Convective heat transfer Coefficient h. Air, free 2.5 - 25 W/(m^2*k)
 %Emissivity
     e_Cu = 0.22;                                %Copper tube, value 0.052
     e_Al = 0.04;                                %Aluminum tape
@@ -36,11 +38,11 @@ close all;
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
 %Measurements for in- and outlet connectors
-    D_Po = 0.012;        %Diameter of the polyurethane tube [m]
-    R_Po1 = 0.004;       %Inner radius of the polyurethane tube [m]
-    R_Po2 = 0.006;       %Outer radius of the polyurethane tube [m]
-    L_Tube_HV_to_SC = 3; %Estimated length of tube that goes from the heat storage vessel to the solar collector [m]
-    L_Tube_SC_to_HV = 3; %Estimated length of tube that goes from the solar collector to the heat storage vessel[m]]
+    D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
+    R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
+    R_Po2 = 0.006;                              %Outer radius of the polyurethane tube [m]
+    L_Tube_HV_to_SC = 3;                        %Estimated length of tube that goes from the heat storage vessel to the solar collector [m]
+    L_Tube_SC_to_HV = 3;                        %Estimated length of tube that goes from the solar collector to the heat storage vessel[m]]
 %Areas
     A_RadCu = 4*D_Cu*1.4+3*0.5*0.25*pi*(0.0898^2-0.0778^2)+2*0.012*0.15; %Sunlit area of the copper tube
     A_RadAl = 0.670*1.4 - 4*0.012*1.4;          %Sunlit area of the aluminum troughs
@@ -104,16 +106,16 @@ for t=0:t_step:t_end
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     %Equations for the inlet Tubing%
     %%%%%%%%%%%%%%%%%%%%%%%%%% 
-    m_in_old = m_in_tube - m_flow;                                          %Mass of water from t-t_step
-    m_in_new = m_flow;                                                      %Mass of water added to the inlet tubing during t_step
-    %T_HV_in = (m_in_old*T_HV_in + m_in_new*T_SC)/(m_in_old+m_in_new);       %Calculating the average temperature in the solar collector, taking into account the inflow from the vessel
+    %m_in_old = m_in_tube - m_flow;                                          %Mass of water from t-t_step
+    %m_in_new = m_flow;                                                      %Mass of water added to the inlet tubing during t_step
+    %T_HV_in = (m_in_old*T_HV_in + m_in_new*T_SC_out)/(m_in_old+m_in_new);   %Calculating the average temperature in the solar collector, taking into account the inflow from the vessel
     
     %Heat losses in inlet tubing%
-    R_Cond_tube_in =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
-    dQdt_tube_in = T_HV_in / R_Cond_tube_in;                                %Heat loss of conduction inlet tubing [W]
+    %R_Cond_tube_in =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
+    %dQdt_tube_in = T_HV_in / R_Cond_tube_in;                                %Heat loss of conduction inlet tubing [W]
     
-    delta_T_in = (dQdt_tube_in*t_step/(m_in_tube*c_water));
-    T_HV_in=T_HV_in+delta_T_in;
+    %delta_T_in = (dQdt_tube_in*t_step/(m_in_tube*c_water));
+    %T_HV_in=T_HV_in+delta_T_in;
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %       Equations for the vessel       %
@@ -139,7 +141,11 @@ for t=0:t_step:t_end
     m_PolyTube1_new = m_flow;                                               %Mass of water added to the heat vessel during t_step
     T_SC_in = (m_PolyTube1_old*T_SC_in + m_HV_new*T_HV_out)/(m_PolyTube1_old+m_PolyTube1_new); %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater   
     
-    dQdt_PolyTube1_total = 0;
+    R_tube_out_Cond =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_HV_to_SC )); %Thermal resitance of conduction outlet tubing [K/W]
+    R_tube_out_Conv = 1 / (h_air*(2*pi*R_Po2)*L_Tube_HV_to_SC) ;             %Thermal resitance of convection outlet tubing [K/W]
+    R_tube_out_total = R_tube_out_Cond + R_tube_out_Conv;                      %Total thermal resistance in series
+    
+    dQdt_PolyTube1_total = -(T_SC_in / R_tube_out_total);                    %Heat loss of conduction outlet tubing [W]
     
     delta_T = (dQdt_PolyTube1_total*t_step/(m_PolyTube1_water*c_water));
     T_SC_in = T_SC_in+delta_T;
@@ -168,11 +174,15 @@ for t=0:t_step:t_end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Tube 2 Solar collector --> Heat vessel%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    m_PolyTube2_old = m_PolyTube1_water - m_flow;                           %Mass of water from t-t_step
-    m_PolyTube2_new = m_flow;                                               %Mass of water added to the heat vessel during t_step
-    T_HV_in = (m_PolyTube2_old*T_HV_in + m_HV_new*T_SC_out)/(m_PolyTube2_old+m_PolyTube1_new); %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater   
+    m_PolyTube2_old = m_PolyTube1_water - m_flow;                                                   %Mass of water from t-t_step
+    m_PolyTube2_new = m_flow;                                                                       %Mass of water added to the heat vessel during t_step
+    T_HV_in = (m_PolyTube2_old*T_HV_in + m_HV_new*T_SC_out)/(m_PolyTube2_old+m_PolyTube1_new);      %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater
     
-    dQdt_PolyTube2_total = 0;
+    R_tube_in_Cond =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
+    R_tube_in_Conv = 1 / (h_air*(2*pi*R_Po2)*L_Tube_SC_to_HV) ;             %Thermal resitance of convection inlet tubing [K/W]
+    R_tube_in_total = R_tube_in_Cond + R_tube_in_Conv;                      %Total thermal resistance in series
+    
+    dQdt_PolyTube2_total = -(T_HV_in / R_tube_in_total);                    %Heat loss of conduction inlet tubing [W]
     
     delta_T = (dQdt_PolyTube2_total*t_step/(m_PolyTube2_water*c_water));
     T_HV_in = T_HV_in+delta_T;
