@@ -90,20 +90,6 @@ m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mas
 %%
 for t=0:t_step:t_end
     %%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%
-    %Equations for the inlet Tubing%
-    %%%%%%%%%%%%%%%%%%%%%%%%%% 
-    m_in_old = m_in_tube - m_flow;                                          %Mass of water from t-t_step
-    m_in_new = m_flow;                                                      %Mass of water added to the inlet tubing during t_step
-    T_HV_in = (m_in_old*T_HV_in + m_in_new*T_SC)/(m_in_old+m_in_new);       %Calculating the average temperature in the solar collector, taking into account the inflow from the vessel
-    
-    %Heat losses in inlet tubing%
-    R_Cond_tube_in =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
-    dQdt_tube_in = T_HV_in / R_Cond_tube_in;                                %Heat loss of conduction inlet tubing [W]
-    
-    delta_T_in = (dQdt_tube_in*t_step/(m_in_tube*c_water));
-    T_HV_in=T_HV_in+delta_T_in;
-    %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %       Equations for the vessel       %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
