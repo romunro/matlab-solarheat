@@ -1,9 +1,7 @@
+function y = flow(flowrate)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Matlab model for Solar Collector %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc;
-clear all;
-close all;
 
 %%
 
@@ -42,7 +40,7 @@ close all;
 %Measurements Heat storage vessel
     D_pvc = 0.050;                              %Diameter PVC tube [m]
     R_pvcThick = 0.0018;                        %PVC wall thickness
-    R_pvc1 = (D_pvc/2) - R_pvcThick;            %Inner Radius PVC tube [m]
+    R_pvc1 = (D_pvc/2) - R_pvcThick;                %Inner Radius PVC tube [m]
     R_pvc2 = (D_pvc/2);                         %Outer Radius PVC tube [m]
     N_insLayers = 6;                            %Number of insulating polyethylene foam foil layers [m]
     R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
@@ -70,7 +68,7 @@ close all;
     t_step = 0.1;                               %Step size, do not change [s]
     m_SC_water = 0.512;                         %Max mass of water in the solar collector [kg]
     m_HV_water = 1.2;                           %Max mass of water in the heat vessel [kg]
-    flowrate = 0.1;                             %Value between 0.1-3.0 [L/min]
+    %flowrate = massFlow;                             %Value between 0.1-3.0 [L/min]
 
 %%
 
@@ -200,24 +198,5 @@ for t=0:t_step:t_end
     delta_T = (dQdt_PolyTube2_total*t_step/(m_PolyTube2_water*c_water));
     T_HV_in = T_HV_in+delta_T;
 end
-%%
-%%%%%%%%%%
-%Plotting%
-%%%%%%%%%%
-
-t_var=T_SC_table(1,:);
-T_SC_var=T_SC_table(2,:);
-T_HV_var=T_HV_table(2,:);
-
-hold on
-grid on
-
-plot(t_var,T_SC_var);
-plot(t_var,T_HV_var);
-ylabel('Temperature (K)')
-
-legend({'Outflow temperature solar collector','Outflow temperature heat vessel'}, 'Location','northwest')
-
-xlim([0 t_end]);
-xlabel('Time (s)')
-title('Outflow temperatures')
+y = max(T_HV_table(2,:));
+end
