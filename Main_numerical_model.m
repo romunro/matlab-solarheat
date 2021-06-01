@@ -92,9 +92,7 @@ close all;
 %Variables
     t_end = 20*60;                              %End time [s]
     t_step = 0.1;                               %Step size, do not change [s]
-    m_SC_water = 0.512;                         %Max mass of water in the solar collector [kg]
-    m_HV_water = 1.2;                           %Max mass of water in the heat vessel [kg]
-    flowrate = 0.1;                             %Value between 0.1-3.0 [L/min]
+    flowrate = 3.0;                             %Value between 0.1-3.0 [L/min]
 
 %%
 
@@ -115,10 +113,10 @@ Steps = t_end/t_step;                                                       %Amo
 T_HV_table = zeros(3,Steps+1);                                              %Empty vector for T_HV_table. Row 1: time t. Row 2: T_HV_table. Row 3: dQdt_SC_total.
 T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                                                              %Beginning temperature of water in the heat vessel
-m_SC_water = 0.512;                                                          %Max volume of water in the solar collector
-m_HV_water = 1.2;                                                          %Max volume of water in the heat vessel 
-m_in_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_SC_to_HV ;                    %Max volume of water in the inlet tubing 
-m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                   %Max volume of water in the outlettubing 
+m_SC_water = 0.512;                                                         %Max volume of water in the solar collector
+m_HV_water = 1.2;                                                           %Max volume of water in the heat vessel 
+m_in_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_SC_to_HV ;                     %Max volume of water in the inlet tubing 
+m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                    %Max volume of water in the outlettubing 
 
 %%Tube Heat vessel --> Solar Collector%%
 m_PolyTube1_water = (1/4)*pi*D_PolyTube^2*L_PolyTube1*rho_w;                %Maximum amount of water in the tube [kg]
@@ -175,9 +173,9 @@ for t=0:t_step:t_end
         
         m_HV_old = m_HV_old - m_flow;
         T_HV_out = T_HV_out;
-    else
+    else                                                                    %Thermocline when cold water has been dispersed
         T_HV_inside = (m_flow*T_HV_in + T_HV_inside*m_HV_new)/(m_HV_new + m_flow);
-        m_hv_frac = 1;
+        m_hv_frac = 1;                                                      %Fraction of cold water to hot water is 1, used for heat losses in HV
         T_HV_out = T_HV_inside;
     end
     

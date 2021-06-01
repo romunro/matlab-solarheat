@@ -1,5 +1,6 @@
 clc;
 clear all;
+close all;
 
 %% Find end temperature heat vessel based on flow rate - uses flow.m which is a copy of the main model. Flow.m needs to be updated if the main model is changed.
 flowTable(1,:) = [0.1:0.1:3];
