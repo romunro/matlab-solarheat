@@ -1,6 +1,6 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Matlab model for Solar Collector %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matlab model for Solar Collector Group 10%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc;
 clear all;
 close all;
@@ -10,7 +10,6 @@ close all;
 %%%%%%%%%%%
 %Constants%
 %%%%%%%%%%%
-
 %Natural costants:
     sigma = 5.67*10^(-8);                       %Stefan-Boltzmann constant
     v_out = 4.5;                                %Velocity of air outside the solar collector
@@ -37,19 +36,19 @@ close all;
     k_PVC = 0.19;                               %PVC thermal conduc [W/(mK)]
     k_foil = 0.04;                              %Polyethylene foam foil [W/(mK)]
 %Specific heat
-    c_water = 4186;                             %[J/kgK]
-    c_Cu = 386;                                 %[J/kgK]
-    c_Al = 922;                                 %[J/kgK]
-    c_air = 1007;                               %[J/kgK]
+    c_water = 4186;                             %Specific heat water [J/kgK]
+    c_Cu = 386;                                 %Specific heat copper [J/kgK]
+    c_Al = 922;                                 %Specific heat aluminium[J/kgK]
+    c_air = 1007;                               %Specific heat air[J/kgK]
 %Measurements
     D_Cu = 0.012;                               %Diameter of the copper tube [m]
     D_PolyTube = 0.008;                         %Diameter of the polyurathane pump tubes [m]
     R_Cu1 = 0.005;                              %Inner radius of the copper tube [m]
     R_Cu2 = 0.006;                              %Outer radius of  the copper tube [m]
     V_air = 0.04911;                            %Volume of the air in the solar collector [m^3]
-    V_Al = 8.96*10^(-5);                         %Total volume of the aluminum tape
+    V_Al = 8.96*10^(-5);                        %Total volume of the aluminum tape
     L_Cu_SC = 6.63;                             %Length of the copper tube in the solar collector [m]
-    L_CuTube = 6.630;                     %Total length of tube that's exposed to the air [m]
+    L_CuTube = 6.630;                           %Total length of tube that's exposed to the air [m]
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
     L_Tube_HV = 0.71;
@@ -146,27 +145,23 @@ m_HV_old = m_HV_water;
 T_HV_inside = T_in;
 %%
 for t=0:t_step:t_end
-%      if (0<t && t<300)
-%          flowrate =0.1;
-%          m_flow = (flowrate/60/1000)*rho_w*t_step;
-%      elseif (300<t && t<600)
-%          flowrate =1.1;
-%          m_flow = (flowrate/60/1000)*rho_w*t_step;
-%      elseif (600<t && t<900)
-%          flowrate =2.1;
-%          m_flow = (flowrate/60/1000)*rho_w*t_step;
-%      elseif (900<t && t<1200)
-%          flowrate =3;
-%          m_flow = (flowrate/60/1000)*rho_w*t_step;
-%      end
-          
+    %%Variable flowrate
+    if (120<t && t<1080)
+           xStart = 0.2;
+           dx = 0.4;
+           N = 8;
+           pump = xStart + (0:N-1)*dx;
+           flowrate = pump(round((t-60)/120));
+           m_flow = (flowrate/60/1000)*rho_w*t_step;
+    elseif (1080<t && t<1200)
+           flowrate = 3;
+           m_flow = (flowrate/60/1000)*rho_w*t_step;
+    end
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %       Equations for the vessel       %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %m_HV_old = m_HV_water - m_flow;                                         %Mass of water from t-t_step
-    %m_HV_new = m_flow;                                                      %Mass of water added to the heat vessel during t_step
-    %T_HV_out = (m_HV_old*T_HV_out + m_HV_new*T_HV_in)/(m_HV_old+m_HV_new);  %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater
+    %%%%Thermocline effect 
     if (m_HV_new < m_HV_water)                                              % Cold region thermocline provides outlfow HV
         m_HV_new = m_HV_new + m_flow;
         T_HV_inside = (m_flow*T_HV_in + T_HV_inside*m_HV_new)/(m_HV_new + m_flow);
@@ -180,7 +175,6 @@ for t=0:t_step:t_end
         m_hv_frac = 1;                                                      %Fraction of cold water to hot water is 1, used for heat losses in HV
         T_HV_out = T_HV_inside;
     end
-    
     
     %%%%%Insulation heat loss 
     R_HV_ins_PVC = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_pvc));
@@ -205,10 +199,11 @@ for t=0:t_step:t_end
     
     %%%%Total heat flow
     dQdt_HV_total = dQdt_HV_insulation + dQdt_HV_caps;                      %Total heat flow storage vessel
-    
+    %%%Calclate internal temperature
     delta_T = (dQdt_HV_total*t_step/(m_HV_water*c_water));
     T_HV_inside = T_HV_inside+delta_T;
-
+    
+    %%%Log HV data for plotting
     Column = round((1/t_step)*t+1);
     T_HV_table(2,Column)=T_HV_out;                                          %Assign value for T_HV_out to the right space
     T_HV_table(3,Column)=dQdt_HV_total;                                     %Assign value for dQdt_HV_total to the right space
@@ -241,11 +236,11 @@ for t=0:t_step:t_end
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
 
     dQdt_CondOut = 0;
-    dQdt_RadOut = e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);               %Heat loss due to radiation
-%    dQdt_CondOut = 2*pi*k_Cu*L_CuTube*((T_SC_out-T_air)/(log(R_Cu2/R_Cu1))); %Heat loss due to conduction in the copper tube
-    dQdt_Cu_conv = h_air*A_AirCu*(T_SC_out-T_air);                          %Heat loss due to convection
+    dQdt_RadOut = e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);                    %Heat loss due to radiation
+%   dQdt_CondOut = 2*pi*k_Cu*L_CuTube*((T_SC_out-T_air)/(log(R_Cu2/R_Cu1)));    %Heat loss due to conduction in the copper tube
+    dQdt_Cu_conv = h_air*A_AirCu*(T_SC_out-T_air);                              %Heat loss due to convection
   
-    dQdt_SC_total = dQdt_RadCu - dQdt_RadOut - dQdt_CondOut - dQdt_Cu_conv;  %Total energy
+    dQdt_SC_total = dQdt_RadCu - dQdt_RadOut - dQdt_CondOut - dQdt_Cu_conv;     %Total energy
     
     delta_T = (dQdt_SC_total*t_step)/(m_SC_water*c_water + m_Cu*c_Cu);
     T_SC_out=T_SC_out+delta_T;
@@ -263,9 +258,9 @@ for t=0:t_step:t_end
    
     T_HV_in = (m_PolyTube2_old*T_HV_in + m_HV_new*T_SC_out)/(m_PolyTube2_old+m_HV_new); %Calculating the average temperature in the heat vessel, taking into account the inflow from the solar heater   
     
-    R_tube_in_Cond =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV ));                         %Thermal resitance of conduction inlet tubing [K/W]
-    R_tube_in_Conv = 1 / (h_air*(2*pi*R_Po2)*L_Tube_SC_to_HV) ;                                     %Thermal resitance of convection inlet tubing [K/W]
-    R_tube_in_total = R_tube_in_Cond + R_tube_in_Conv;                                              %Total thermal resistance in series
+    R_tube_in_Cond =  (log(R_Po2 /R_Po1)) / ((2*pi*k_Po*L_Tube_SC_to_HV )); %Thermal resitance of conduction inlet tubing [K/W]
+    R_tube_in_Conv = 1 / (h_air*(2*pi*R_Po2)*L_Tube_SC_to_HV) ;             %Thermal resitance of convection inlet tubing [K/W]
+    R_tube_in_total = R_tube_in_Cond + R_tube_in_Conv;                      %Total thermal resistance in series
     
     %%%%Total flow
     dQdt_PolyTube2_total = -((T_HV_in - T_sur ) / R_tube_in_total);  
@@ -303,18 +298,20 @@ end
 %Plotting%
 %%%%%%%%%%
 
-t_var=T_SC_table(1,:);
-T_SC_var=T_SC_table(2,:);
-T_HV_var=T_HV_table(2,:);
+t_var=T_SC_table(1,:);          %Time variable
+T_SC_var=T_SC_table(2,:);       %Outflow temperature solar collector
+T_HV_var=T_HV_table(2,:);       %Outflow temperature heat vessel
+T_HV_inside = T_HV_table(4,:);  %Inside temperature heat vessel
 
 hold on
 grid on
 
 plot(t_var,T_SC_var);
 plot(t_var,T_HV_var);
+plot(t_var,T_HV_inside);
 ylabel('Temperature (K)')
 
-legend({'Outflow temperature solar collector','Outflow temperature heat vessel'}, 'Location','northwest')
+legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
 
 xlim([0 t_end]);
 xlabel('Time (s)')
