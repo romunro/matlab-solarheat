@@ -181,10 +181,10 @@ for t=0:t_step:t_end
         dQdt_HV_caps = -((T_HV_inside - T_sur ) / R_HV_caps_total);
     end
     
-    %%%%Total heat flow%%%%
+    %%%%Total heat flow storage vessel%%%%
     dQdt_HV_total = dQdt_HV_insulation + dQdt_HV_caps;                      %Total heat flow storage vessel [W/m^2]
     
-    %%%%Calclate internal temperature%%%%
+    %%%%Calculate internal temperature%%%%
     delta_T = (dQdt_HV_total*t_step/(m_HV_water*c_water));                  %Resulting delta T of heat flow [K]
     T_HV_inside = T_HV_inside+delta_T;                                      %Resulting internal temperature [K]
     
