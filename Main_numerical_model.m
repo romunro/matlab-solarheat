@@ -177,12 +177,12 @@ for t=0:t_step:t_end
     end
     
     %%%%%Insulation heat loss 
-    R_HV_ins_PVC = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_pvc));
+    R_HV_PVC_cond = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_pvc));                     %Thermal resitance of conduction through PVC [K/W]
     R_HV_ins_Cond =  (log((R_pvc2 + R_polyFoil)/R_pvc2)) / (k_foil*A_HV);   %Thermal resitance of conduction through poly foam foil [K/W]
     R_HV_ins_Conv = 1 / (h_air*A_HV);                                       %Thermal resitance of convection outside poly foam foil [K/W]
-    HL_RadOut_PVC = e_PVC * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);      %Heat loss due to radiation PVC
-    HL_RadOut_foam = e_foam * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);    %Heat loss due to radiation foam foil
-    R_HV_ins_total = R_HV_ins_PVC + R_HV_ins_Cond + R_HV_ins_Conv;          %Total thermal resistance in series
+    HL_RadOut_PVC = e_PVC * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC
+    HL_RadOut_foam = e_foam * sigma * A_vessel * (T_HV_inside^4 - T_sur^4); %Heat loss due to radiation foam foil
+    R_HV_ins_total = R_HV_PVC_cond + R_HV_ins_Cond + R_HV_ins_Conv;          %Total thermal resistance in series
     dQdt_HV_insulation = m_hv_frac*(-((T_HV_inside - T_sur ) / R_HV_ins_total)-HL_RadOut_PVC-HL_RadOut_foam);   %Total heat flow through insulation multiplied with fraction hot water
     
     %%%%%End caps heat loss
@@ -316,3 +316,4 @@ legend({'Outflow temperature solar collector','Outflow temperature heat vessel',
 xlim([0 t_end]);
 xlabel('Time (s)')
 title('Outflow temperatures')
+saveas(gcf,'Outflow temperature.pdf')
