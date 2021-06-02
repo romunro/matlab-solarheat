@@ -311,4 +311,4 @@ legend({'Outflow temperature solar collector','Outflow temperature heat vessel',
 xlim([0 t_end]);
 xlabel('Time (s)')
 title('Outflow temperatures')
-saveas(gcf,'Outflow temperature.pdf')
+saveas(gcf,'Outflow temperature.jpg')
