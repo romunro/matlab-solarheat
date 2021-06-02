@@ -124,6 +124,10 @@ T_SC_in = T_in;                                                             %Sta
 T_SC_table = zeros(3,Steps+1);                                              %Empty vector for T_SC_table. Row 1: time t. Row 2: T_SC_table. Row 3: dQdt_SC_total.
 T_SC_table(1,:) = 0:t_step:t_end;
 T_SC_out=T_in;                                                              %Beginning temperature of water in the solar collector
+%SC glass plate calculations
+d_glass = 0.004;                                                            %Thickness of the glass plate [m]
+A_glass = 0.67*(1.640+0.080);                                               %Area of the glass plate [m]
+k_glass = 0.78;                                                             %Thermal conductivity of the glass plate [J/s mK]
 
 %%Tube Solar Collector --> Heat vessel%%
 m_PolyTube2_water = (1/4)*pi*D_PolyTube^2*L_PolyTube2*rho_w;                %Maximum amount of water in the tube [kg]
@@ -284,11 +288,6 @@ for t=0:t_step:t_end
     end
     
     T_Al = T_Al + delta_T;
-    
-    %New constants:
-    d_glass = 0.004;                                                        %Thickness of the glass plate [m]
-    A_glass = 0.67*(1.640+0.080);                                           %Area of the glass plate [m]
-    k_glass = 0.78;                                                         %Thermal conductivity of the glass plate [J/s mK]
     
     %Air temperature:
     dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat loss to the environment through the wood by conduction
