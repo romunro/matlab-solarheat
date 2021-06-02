@@ -49,8 +49,7 @@ close all;
     V_air = 0.04911;                            %Volume of the air in the solar collector [m^3]
     V_Al = 8.96*10^(-5);                         %Total volume of the aluminum tape
     L_Cu_SC = 6.63;                             %Length of the copper tube in the solar collector [m]
-    L_TubeAir = 5.81973313;                     %Total length of tube that's exposed to the air [m]
-    L_TubeTempex = 0.4446626;                   %Total length of tube that's exposed to the tempex [m]
+    L_CuTube = 6.630;                     %Total length of tube that's exposed to the air [m]
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
     L_Tube_HV = 0.71;
@@ -113,10 +112,9 @@ Steps = t_end/t_step;                                                       %Amo
 T_HV_table = zeros(3,Steps+1);                                              %Empty vector for T_HV_table. Row 1: time t. Row 2: T_HV_table. Row 3: dQdt_SC_total.
 T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                                                              %Beginning temperature of water in the heat vessel
-m_SC_water = 0.512;                                                         %Max volume of water in the solar collector
-m_HV_water = 1.2;                                                           %Max volume of water in the heat vessel 
-m_in_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_SC_to_HV ;                     %Max volume of water in the inlet tubing 
-m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                    %Max volume of water in the outlettubing 
+m_SC_water = 0.512;                                                          %Max volume of water in the solar collector
+m_HV_water = 1.2;                                                          %Max volume of water in the heat vessel 
+m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                   %Max volume of water in the outlettubing 
 
 %%Tube Heat vessel --> Solar Collector%%
 m_PolyTube1_water = (1/4)*pi*D_PolyTube^2*L_PolyTube1*rho_w;                %Maximum amount of water in the tube [kg]
@@ -237,12 +235,13 @@ for t=0:t_step:t_end
     m_SC_old = m_SC_water - m_flow;                                         %Mass of water from t-t_step
     m_SC_new = m_flow;                                                      %Mass of water added to the solar collector during t_step
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
-    
-    dQdt_RadOut = -e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);               %Heat loss due to radiation
-    dQdt_CondOut = 0;%%2*pi*k_Cu*L_TubeAir*((T_SC_out-T_sur)/R_Cu2 - R_Cu1); %Heat loss due to conduction (assuming that the air and tempex remain at temperature T_sur)
+
+    dQdt_CondOut = 0;
+    dQdt_RadOut = e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);               %Heat loss due to radiation
+%    dQdt_CondOut = 2*pi*k_Cu*L_CuTube*((T_SC_out-T_air)/(log(R_Cu2/R_Cu1))); %Heat loss due to conduction in the copper tube
     dQdt_Cu_conv = h_air*A_AirCu*(T_SC_out-T_air);                          %Heat loss due to convection
   
-    dQdt_SC_total = dQdt_RadCu + dQdt_RadOut + dQdt_CondOut - dQdt_Cu_conv;  %Total energy
+    dQdt_SC_total = dQdt_RadCu - dQdt_RadOut - dQdt_CondOut - dQdt_Cu_conv;  %Total energy
     
     delta_T = (dQdt_SC_total*t_step)/(m_SC_water*c_water + m_Cu*c_Cu);
     T_SC_out=T_SC_out+delta_T;
@@ -278,13 +277,23 @@ for t=0:t_step:t_end
     dQdt_Al_conv = h_air*A_AirTape*(T_Al-T_air);
     dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;
     
-    delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
+    if (T_Al < 353)
+        delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
+    else
+        delta_T = 0;
+    end
+    
     T_Al = T_Al + delta_T;
     
-    %Now for the air temperature:
-    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat loss to the environment by conduction
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv;
-
+    %New constants:
+    d_glass = 0.004;                                                        %Thickness of the glass plate [m]
+    A_glass = 0.67*(1.640+0.080);                                           %Area of the glass plate [m]
+    k_glass = 0.78;                                                         %Thermal conductivity of the glass plate [J/s mK]
+    
+    %Air temperature:
+    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat loss to the environment through the wood by conduction
+    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;            %Heat loss to the environment through the glass by conduction
+    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut;
     
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);
     T_air = T_air + delta_T;
@@ -298,16 +307,15 @@ end
 t_var=T_SC_table(1,:);
 T_SC_var=T_SC_table(2,:);
 T_HV_var=T_HV_table(2,:);
-T_HV_inside = T_HV_table(4,:);
+
 hold on
 grid on
 
 plot(t_var,T_SC_var);
 plot(t_var,T_HV_var);
-plot(t_var,T_HV_inside);
 ylabel('Temperature (K)')
 
-legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
+legend({'Outflow temperature solar collector','Outflow temperature heat vessel'}, 'Location','northwest')
 
 xlim([0 t_end]);
 xlabel('Time (s)')
