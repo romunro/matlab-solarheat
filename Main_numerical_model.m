@@ -6,7 +6,6 @@ clear all;
 close all;
 
 %%
-
 %%%%%%%%%%%
 %Constants%
 %%%%%%%%%%%
