@@ -22,18 +22,18 @@ close all;
     e_wood = 0.94;
     e_CuMatte = 0.22;                           %Emissivity of the copper tube after making it less reflective (for comparison)
 %Thermal conductivity
-    k_air = 0.026;                              %Air [W/(mK)]
-    k_tempex =0.03;                             %Tempex plate [W/(mK)]
-    k_Cu = 400;                                 %Copper tube [W/(mK)]
+    k_air = 0.026;                              %Air [W/(m*K)]
+    k_tempex =0.03;                             %Tempex plate [W/(m*K)]
+    k_Cu = 400;                                 %Copper tube [W/(m*K)]
     k_wood = 0.12;                              %Wood casing [W/(m*K)]
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
-    k_PVC = 0.19;                               %PVC thermal conduc [W/(mK)]
-    k_foil = 0.04;                              %Polyethylene foam foil [W/(mK)]
-    k_glass = 0.78;                             %Thermal conductivity of the glass plate [J/s mK]
+    k_PVC = 0.19;                               %PVC thermal conduc [W/(m*K)]
+    k_foil = 0.04;                              %Polyethylene foam foil [W/(m*K)]
+    k_glass = 0.78;                             %Thermal conductivity of the glass plate [W/(m*K)]
 %Heat transfer coefficient
-    h_out_air = 10.45 - v_out + 10*(v_out)^(1/2);%Outside solar collector air [W/(m*K)]
-    h_in_air = 10.45 - v_in + 10*(v_in)^(1/2);  %Inside solar collector air [W/(m*K)]
-    h_air = 2.5;                                %Still standing 298K air [W/(m*K)]
+    h_out_air = 10.45 - v_out + 10*(v_out)^(1/2);%Outside solar collector air [W/(m^2*K)]
+    h_in_air = 10.45 - v_in + 10*(v_in)^(1/2);  %Inside solar collector air [W/(m^2*K)]
+    h_air = 2.5;                                %Still standing 298K air [W/(m^2*K)]
 %Specific heat
     c_water = 4186;                             %Specific heat water [J/kgK]
     c_Cu = 386;                                 %Specific heat copper [J/kgK]
@@ -164,9 +164,9 @@ for t=0:t_step:t_end
     R_HV_PVC_cond = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_pvc));                     %Thermal resitance of conduction through PVC [K/W]
     R_HV_ins_Cond =  (log((R_pvc2 + R_polyFoil)/R_pvc2)) / (k_foil*A_HV);   %Thermal resitance of conduction through poly foam foil [K/W]
     R_HV_ins_Conv = 1 / (h_air*A_HV);                                       %Thermal resitance of convection outside poly foam foil [K/W]
-    HL_RadOut_PVC = e_PVC * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC
-    HL_RadOut_foam = e_foam * sigma * A_vessel * (T_HV_inside^4 - T_sur^4); %Heat loss due to radiation foam foil
-    R_HV_ins_total = R_HV_PVC_cond + R_HV_ins_Cond + R_HV_ins_Conv;         %Total thermal resistance in series
+    HL_RadOut_PVC = e_PVC * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC [W]
+    HL_RadOut_foam = e_foam * sigma * A_vessel * (T_HV_inside^4 - T_sur^4); %Heat loss due to radiation foam foil [W]
+    R_HV_ins_total = R_HV_PVC_cond + R_HV_ins_Cond + R_HV_ins_Conv;         %Total thermal resistance in series [K/W]
     dQdt_HV_insulation = m_hv_frac*(-((T_HV_inside - T_sur ) / R_HV_ins_total)-HL_RadOut_PVC-HL_RadOut_foam);   %Total heat flow through insulation multiplied with fraction hot water
     
     %%%%%End caps heat loss%%%%
@@ -236,14 +236,14 @@ for t=0:t_step:t_end
     m_SC_new = m_flow;                                                      %Mass of water added to the solar collector during t_step
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
 
-    %%%Thermal resistances in the solar collector%%%	
-    R_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4);            %Thermal resistance due to radiation [K/W]                
+    %%%Heat transfer mechanisms in the solar collector%%%	
+    dtQt_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4);            %Heat loss due to radiation [W]                
     R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_CuTube);                 %Thermal resistance due to conduction in the copper tube [K/W]
     R_Cu_conv = 1 / (h_air*A_AirCu);                                       %Thermal resistance due to convection [K/W]
-    R_SC_total = R_RadOut + R_CondOut + R_Cu_conv;                         %The total of all the thermal resistances [K/W]
+    R_SC_total = R_CondOut + R_Cu_conv;                                   %The total of all the thermal resistances [K/W]
   
     %%%%Total heat flow solar collector%%%%
-    dQdt_SC_total = dQdt_RadCu - ((T_SC_out - T_air) / R_SC_total);        %Total heat flow solar collector [W/m^2]
+    dQdt_SC_total = dQdt_RadCu - ((T_SC_out - T_air) / R_SC_total) - dtQt_RadOut;        %Total heat flow solar collector [W/m^2]
     
     %%%%Calculate internal temperature%%%%    
     delta_T = (dQdt_SC_total*t_step)/(m_SC_water*c_water + m_Cu*c_Cu);      %Resulting delta T of heat flow [K]
@@ -278,15 +278,16 @@ for t=0:t_step:t_end
     %            Air Temperature           %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %To calculate dQdt_air_total, first the temperature of the aluminum tape has to be determined:
-    dQdt_Al_conv = h_air*A_AirTape*(T_Al-T_air);                            %Convective heat flow aluminium tape[W/m^2]
-    dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;                           %Total heat flow aluminium tape[W/m^2]
+    dQdt_Al_conv = h_air*A_AirTape*(T_Al-T_air);                            %Convective heat loss aluminium tape[W]
+    dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;                           %Total heat flow aluminium tape[W]
     delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
     T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T
     
     %Air temperature:
     dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat flow to the environment through the wood by conduction
-    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;            %Heat flow to the environment through the glass by conduction
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut; %Total heat flow from air SC to enviroment [W/m^2]
+    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;           %Heat flow to the environment through the glass by conduction
+    dQdt_CondOut = 0; %-(T_SC_out - T_air)/R_CondOut;    
+    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut;
     
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
     T_air = T_air + delta_T;                                                %Resulting air temperature [K]
