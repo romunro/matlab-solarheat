@@ -77,7 +77,7 @@ close all;
     A_vessel = 2*pi*(R_PVC2)^2 + L_Tube_HV*2*pi*R_PVC2;
 %Intensity
     I_sun = 1000;                               %Intensity of the artificial sun [W/m^2]
-    I_glass = 970;                              %Intensity after absorption of glass plate [W/m^2]
+    I_glass = 950;                              %Intensity after absorption of glass plate [W/m^2]
 %Temperatures
     T_sur = 293;                                %Temperature of the surroundings [K]
     T_in = 293;                                 %Temperature of the incoming water [K]
