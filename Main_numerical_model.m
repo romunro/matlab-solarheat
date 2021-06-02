@@ -2,6 +2,7 @@
 % Matlab model for Solar Collector Group 10%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc;
+clear;
 close all;
 %%
 %%%%%%%%%%%
@@ -88,6 +89,7 @@ close all;
     rho_Al = 2.70*10^3;                         %Density of aluminum [kg/m^3]
 %Variables
     test_length = 20;                           %Given time in test [minutes]
+    flowrate = 0.1;                             %Initial flowrate [L/min]
 %%
 %%%%%%%%%%%%%%
 %Calculations%
@@ -108,7 +110,8 @@ T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                                                              %Beginning temperature of water in the heat vessel
 m_SC_water = 0.512;                                                         %Max volume of water in the solar collector
 m_HV_water = 1.2;                                                           %Max volume of water in the heat vessel 
-m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                    %Max volume of water in the outlettubing 
+m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;                    %Max volume of water in the outlettubing
+m_hv_frac = 0;                                                              %Initial fraction hot water to cold water
 
 %%Thermocline HV start values%%
 m_HV_new = 0;
@@ -133,12 +136,12 @@ m_PolyTube2_water = (1/4)*pi*D_PolyTube^2*L_PolyTube2*rho_w;                %Max
 T_HV_in = T_in;                                                             %Starting temperature [K]
 
 %%General%%
-m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mass of water inflow from pump during t_step
 m_Cu = (L_Cu_SC*pi*R_Cu2^2 - L_Cu_SC*pi*R_Cu1^2)*rho_Cu;                    %Mass of the copper tube in the solar collector
 m_air = rho_air*V_air;                                                      %Mass of the air in the solar collector
 m_Al = rho_Al*V_Al;                                                         %Total mass of the aluminum tape
 T_air = T_in;                                                               %Starting temperature of the air [K]
 T_Al = T_in;                                                                %Starting temperature of the aluminum tape [K]
+m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mass of water inflow from pump during t_step
 %%
 for t=0:t_step:t_end
     %%Variable flowrate
@@ -148,10 +151,10 @@ for t=0:t_step:t_end
            N = 8;
            pump = xStart + (0:N-1)*dx;
            flowrate = pump(round((t-60)/120));
-           m_flow = (flowrate/60/1000)*rho_w*t_step;
+           m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step
     elseif (1080<t && t<1200)
            flowrate = 3;
-           m_flow = (flowrate/60/1000)*rho_w*t_step;
+           m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step
     end
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -189,9 +192,7 @@ for t=0:t_step:t_end
     if (m_HV_new < m_HV_water)                                              % Cold region thermocline provides outlfow HV
         m_HV_new = m_HV_new + m_flow;
         T_HV_inside = (m_flow*T_HV_in + T_HV_inside*m_HV_new)/(m_HV_new + m_flow);
-        
         m_hv_frac = m_HV_new / m_HV_water;                                  %Fraction of how full the HV is with 'hot water' compared to total capacity, used for fractional heat loss HV
-        
         m_HV_old = m_HV_old - m_flow;
         T_HV_out = T_in;
     else                                                                    %Thermocline when cold water has been dispersed
@@ -235,7 +236,7 @@ for t=0:t_step:t_end
     m_SC_new = m_flow;                                                      %Mass of water added to the solar collector during t_step
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
 
-    	
+    dQdt_CondOut = 0;	
     dQdt_RadOut = e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);                %Heat loss due to radiation
 %   dQdt_CondOut = 2*pi*k_Cu*L_CuTube*((T_SC_out-T_air)/(log(R_Cu2/R_Cu1)));%Heat loss due to conduction in the copper tube
     dQdt_Cu_conv = h_air*A_AirCu*(T_SC_out-T_air);                          %Heat loss due to convection
