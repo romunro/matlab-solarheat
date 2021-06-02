@@ -72,7 +72,7 @@ close all;
     A_RadCu = 4*D_Cu*1.4+3*0.5*0.25*pi*(0.0898^2-0.0778^2)+2*0.012*0.15; %Sunlit area of the copper tube
     A_RadAl = 0.670*1.4 - 4*0.012*1.4;                      %Sunlit area of the aluminum troughs
     A_AirCu = 1.4*pi*D_Cu + 3*4.9594762*10^(-3) + 0.05*pi*D_Cu + 2*0.1*pi*D_Cu; %Area of the copper tube that's exposed to the air
-    A_AirTape = 0.31;                                       %Area of the aluminum tape that is exposed to the air
+    A_AirTape = 1.971;                                       %Area of the aluminum tape that is exposed to the air
     A_AirSS = 2*(1.64*0.67)+2*(0.67*0.065)+2*(0.065*1.72);  %Area of solar collector that is exposed to the air
     A_frame = 2*(0.67*0.065)+2*(0.065*1.72);                %Area of sides touching pinewood
     A_vessel = 2*pi*(R_PVC2)^2 + L_Tube_HV*2*pi*R_PVC2;
@@ -276,24 +276,13 @@ for t=0:t_step:t_end
     %To calculate dQdt_air_total, first the temperature of the aluminum tape has to be determined:
     dQdt_Al_conv = h_air*A_AirTape*(T_Al-T_air);                            %Convective heat flow aluminium tape[W/m^2]
     dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;                           %Total heat flow aluminium tape[W/m^2]
-    %Limit alumium temperature to max 80 degree C
-    if (T_Al < 353)                                                         
-        delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
-    else
-        delta_T = 0;
-    end
-    T_Al = T_Al + delta_T;                                                  %Temperature alumium tape after delta T
+    delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
+    T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T
     
-    %Air temperature:    
-    R_Glass_cond = d_glass/(k_glass*A_glass);                               %Thermal resitance of conduction glass plate [K/W]
-    R_Frame_cond = dx/(k_wood*A_frame);                                     %Thermal resitance of conduction wooden frame [K/W]
-    R_Glass_conv = 1 / (h_out_air*A_glass);                                 %Thermal resitance of convection glass plate [K/W]
-    R_Frame_conv = 1 / (h_out_air*A_frame);                                 %Thermal resitance of convection wooden frame [K/W]
-    HL_RadOut_Frame = e_wood * sigma * A_frame * (T_air^4 - T_sur^4);       %Heat loss due to radiation wooden frame ([K/W]
-    
-    R_air_total = R_Glass_cond + R_Frame_cond + R_Glass_conv + R_Frame_conv;%Total thermal resistance in series
-    
-    dQdt_air_total = dQdt_Al_total -((T_air - T_sur ) / R_air_total)-HL_RadOut_Frame;   %Total heat flow
+    %Air temperature:
+    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat flow to the environment through the wood by conduction
+    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;            %Heat flow to the environment through the glass by conduction
+    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut; %Total heat flow from air SC to enviroment [W/m^2]
     
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
     T_air = T_air + delta_T;                                                %Resulting air temperature [K]
