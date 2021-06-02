@@ -236,16 +236,20 @@ for t=0:t_step:t_end
     m_SC_new = m_flow;                                                      %Mass of water added to the solar collector during t_step
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
 
-    dQdt_CondOut = 0;	
-    dQdt_RadOut = e_Cu*sigma*A_AirCu*(T_SC_out^4 - T_air^4);                %Heat loss due to radiation
-%   dQdt_CondOut = 2*pi*k_Cu*L_CuTube*((T_SC_out-T_air)/(log(R_Cu2/R_Cu1)));%Heat loss due to conduction in the copper tube
-    dQdt_Cu_conv = h_air*A_AirCu*(T_SC_out-T_air);                          %Heat loss due to convection
+    %%%Thermal resistances in the solar collector%%%	
+    R_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4);            %Thermal resistance due to radiation [K/W]                
+    R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_CuTube);                 %Thermal resistance due to conduction in the copper tube [K/W]
+    R_Cu_conv = 1 / (h_air*A_AirCu);                                       %Thermal resistance due to convection [K/W]
+    R_SC_total = R_RadOut + R_CondOut + R_Cu_conv;                         %The total of all the thermal resistances [K/W]
   
-    dQdt_SC_total = dQdt_RadCu - dQdt_RadOut - dQdt_CondOut - dQdt_Cu_conv; %Total heat flow solar collector[W/m^2]
+    %%%%Total heat flow solar collector%%%%
+    dQdt_SC_total = dQdt_RadCu - ((T_SC_out - T_air) / R_SC_total);        %Total heat flow solar collector [W/m^2]
     
+    %%%%Calculate internal temperature%%%%    
     delta_T = (dQdt_SC_total*t_step)/(m_SC_water*c_water + m_Cu*c_Cu);      %Resulting delta T of heat flow [K]
     T_SC_out=T_SC_out+delta_T;                                              %Resulting outflow temperature [K]
     
+    %%%%Log SC data for plotting%%%%
     Column = round((1/t_step)*t+1);
     T_SC_table(2,Column)=T_SC_out;                                          %Assign value for T to the right space
     T_SC_table(3,Column)=delta_T;                                           %Assign value for T to the right space
