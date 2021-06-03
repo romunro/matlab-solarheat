@@ -282,13 +282,13 @@ for t=0:t_step:t_end
     dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;                           %Total heat flow aluminium tape[W]
     delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);
     T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T
-    
+
     %Air temperature:
     dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat flow to the environment through the wood by conduction
     dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;           %Heat flow to the environment through the glass by conduction
-    dQdt_CondOut = 0; %-(T_SC_out - T_air)/R_CondOut;    
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut;
-    
+    dQdt_CondOut = 0;                                                     %-(T_SC_out - T_air)/R_CondOut; gives a NaN value, goes to infinity 
+    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut; 
+     
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
     T_air = T_air + delta_T;                                                %Resulting air temperature [K]
     
