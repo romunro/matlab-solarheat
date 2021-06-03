@@ -243,7 +243,8 @@ for t=0:t_step:t_end
     R_SC_total = R_CondOut + R_Cu_conv;                                   %The total of all the thermal resistances [K/W]
   
     %%%%Total heat flow solar collector%%%%
-    dQdt_SC_total = dQdt_RadCu - ((T_SC_out - T_air) / R_SC_total) - dtQt_RadOut;        %Total heat flow solar collector [W/m^2]
+    dQdT_SC_tube = ((T_SC_out - T_air) / R_SC_total);
+    dQdt_SC_total = dQdt_RadCu - dQdT_SC_tube - dtQt_RadOut;        %Total heat flow solar collector [W/m^2]
     
     %%%%Calculate internal temperature%%%%    
     delta_T = (dQdt_SC_total*t_step)/(m_SC_water*c_water + m_Cu*c_Cu);      %Resulting delta T of heat flow [K]
@@ -284,10 +285,9 @@ for t=0:t_step:t_end
     T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T
 
     %Air temperature:
-    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;                %Heat flow to the environment through the wood by conduction
+    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/dx;               %Heat flow to the environment through the wood by conduction
     dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;           %Heat flow to the environment through the glass by conduction
-    dQdt_CondOut = 0;                                                     %-(T_SC_out - T_air)/R_CondOut; gives a NaN value, goes to infinity 
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdt_CondOut; 
+    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdT_SC_tube; 
      
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
     T_air = T_air + delta_T;                                                %Resulting air temperature [K]
