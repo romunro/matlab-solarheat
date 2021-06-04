@@ -58,7 +58,7 @@ close all;
     R_pvc2 = (D_pvc/2);                         %Outer Radius PVC tube [m]
     N_insLayers = 6;                            %Number of insulating polyethylene foam foil layers [m]
     R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
-    L_Tube_HV = 0.71;                               %PVC length [m]
+    L_Tube_HV = 0.71;                           %PVC length [m]
 %Measurements for in- and outlet connectors
     D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
     R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
@@ -144,9 +144,9 @@ for t=0:t_step:t_end
     %%Variable flowrate
     if (120<t && t<1080)
            xStart = 0.2;
-           d_frame = 0.4;
+           dx = 0.4;
            N = 8;
-           pump = xStart + (0:N-1)*d_frame;
+           pump = xStart + (0:N-1)*dx;
            flowrate = pump(round((t-60)/120));
            m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
     elseif (1080<t && t<1200)
