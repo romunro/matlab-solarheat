@@ -59,7 +59,6 @@ close all;
     N_insLayers = 6;                            %Number of insulating polyethylene foam foil layers [m]
     R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
     L_Tube_HV = 0.71;                               %PVC length [m]
-    A_HV = 2*pi*(R_pvc2+R_polyFoil)*L_Tube_HV;      %Surface area Heat storage vessel %%%%CHECK THIS
 %Measurements for in- and outlet connectors
     D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
     R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
@@ -73,7 +72,7 @@ close all;
     A_AirTape = 1.971;                                      %Area of the aluminum tape that is exposed to the air [m^2]
     A_AirSS = 2*(1.64*0.67)+2*(0.67*0.065)+2*(0.065*1.72);  %Area of solar collector that is exposed to the air [m^2]
     A_frame = 2*(0.67*0.065)+2*(0.065*1.72);                %Area of sides touching pinewood [m^2]
-    A_vessel = 2*pi*(R_pvc2)^2 + L_Tube_HV*2*pi*R_pvc2;     %Area of heat vessel [m^2] %%%%CHECK THIS
+    A_HV = 2*pi*(R_pvc2+R_polyFoil)*L_Tube_HV;              %Area of heat vessel [m^2] %%%%CHECK THIS
 %Intensity
     I_sun = 1000;                               %Intensity of the artificial sun [W/m^2]
     I_glass = 950;                              %Intensity after absorption of glass plate [W/m^2]
@@ -162,8 +161,8 @@ for t=0:t_step:t_end
     R_HV_PVC_cond = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_Tube_HV));                     %Thermal resitance of conduction through PVC [K/W]
     R_HV_ins_Cond =  (log((R_pvc2 + R_polyFoil)/R_pvc2)) / (k_foil*A_HV);   %Thermal resitance of conduction through poly foam foil [K/W]
     R_HV_ins_Conv = 1 / (h_air*A_HV);                                       %Thermal resitance of convection outside poly foam foil [K/W]
-    HL_RadOut_PVC = e_PVC * sigma * A_vessel * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC [W]
-    HL_RadOut_foam = e_foam * sigma * A_vessel * (T_HV_inside^4 - T_sur^4); %Heat loss due to radiation foam foil [W]
+    HL_RadOut_PVC = e_PVC * sigma * A_HV * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC [W]
+    HL_RadOut_foam = e_foam * sigma * A_HV * (T_HV_inside^4 - T_sur^4); %Heat loss due to radiation foam foil [W]
     R_HV_ins_total = R_HV_PVC_cond + R_HV_ins_Cond + R_HV_ins_Conv;         %Total thermal resistance in series [K/W]
     %Total heat flow through insulation multiplied with fraction hot water
     dQdt_HV_insulation = m_hv_frac*(-((T_HV_inside - T_sur ) / R_HV_ins_total)-HL_RadOut_PVC-HL_RadOut_foam);   
