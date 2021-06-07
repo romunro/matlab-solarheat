@@ -312,8 +312,11 @@ grid on
 plot(t_var,T_SC_var);
 plot(t_var,T_HV_var);
 plot(t_var,T_HV_inside);
-ylabel('Temperature (K)')
 
+annotation('textarrow',[0.8 0.9], [0.82 0.78] ,'String','T = 314.6 K ');
+annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocline effect');
+
+ylabel('Temperature (K)')
 legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
 
 xlim([0 t_end]);
