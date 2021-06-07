@@ -29,7 +29,7 @@ close all;
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
     k_PVC = 0.19;                               %PVC thermal conduc [W/(m*K)]
     k_foil = 0.04;                              %Polyethylene foam foil [W/(m*K)]
-    k_glass = 0.78;                             %Thermal conductivity of the glass plate [W/(m*K)]
+    k_glass = 0.96;                             %Thermal conductivity of the glass plate [W/(m*K)]
 %Heat transfer coefficient
     h_out_air = 10.45 - v_out + 10*(v_out)^(1/2);%Outside solar collector air [W/(m^2*K)]
     h_in_air = 10.45 - v_in + 10*(v_in)^(1/2);  %Inside solar collector air [W/(m^2*K)]

@@ -10,7 +10,7 @@ function y = flow(flowrate)
     v_out = 4.5;                                %Velocity of air outside the solar collector
     v_in = 0;                                   %Velocity of air inside the solar collector 
 %Emissivity
-    e_Cu = 0.22;                                %Copper tube, value 0.052
+    e_Cu = 0.22;                                %Copper tube
     e_glass = 0.94;
     e_PVC = 0.91;                               %PVC tube
     e_foam = 0.9;                               %foam foil
@@ -26,7 +26,7 @@ function y = flow(flowrate)
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
     k_PVC = 0.19;                               %PVC thermal conduc [W/(m*K)]
     k_foil = 0.04;                              %Polyethylene foam foil [W/(m*K)]
-    k_glass = 0.78;                             %Thermal conductivity of the glass plate [W/(m*K)]
+    k_glass = 0.96;                             %Thermal conductivity of the glass plate [W/(m*K)]
 %Heat transfer coefficient
     h_out_air = 10.45 - v_out + 10*(v_out)^(1/2);%Outside solar collector air [W/(m^2*K)]
     h_in_air = 10.45 - v_in + 10*(v_in)^(1/2);  %Inside solar collector air [W/(m^2*K)]
