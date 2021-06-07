@@ -142,16 +142,16 @@ m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mas
 %%
 for t=0:t_step:t_end
     %%Variable flowrate
-    if (120<t && t<1080)
-           xStart = 0.2;
-           dx = 0.4;
-           N = 8;
-           pump = xStart + (0:N-1)*dx;
-           flowrate = pump(round((t-60)/120));
-           m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
-    elseif (1080<t && t<1200)
-           flowrate = 3;
-           m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
+    if (120<t && t<1080)                                                   %Varying flow rate between 2 minutes and 18 minutes
+          xStart = 0.2;                                                    %Flow rate after 2 minutes
+          steptime = 0.4;                                                  %Stepsize of the flow rate after every 2 minutes
+          N = 8;                                                           %Amount of steps
+          pump = xStart + (0:N-1)*steptime;                                %Ceating array with differnt flow rates
+          flowrate = pump(round((t-60)/120));                              %At what time which array (flow rate) should be picked
+          m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
+    elseif (1080<t && t<1200)                                              %Flow rate between 18 minutes and 20 minutes
+          flowrate = 3;                                                    %Flow rate [L/min]
+          m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
     end
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
