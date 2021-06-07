@@ -141,7 +141,10 @@ T_Al = T_in;                                                                %Sta
 m_flow = (flowrate/60/1000)*rho_w*t_step;                                   %Mass of water inflow from pump during t_step [kg]
 %%
 for t=0:t_step:t_end
-    %%Variable flowrate
+    %%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %       Variable flowrate              %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (120<t && t<1080)                                                   %Varying flow rate between 2 minutes and 18 minutes
           xStart = 0.2;                                                    %Flow rate after 2 minutes
           steptime = 0.4;                                                  %Stepsize of the flow rate after every 2 minutes
