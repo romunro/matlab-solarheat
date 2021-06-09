@@ -338,6 +338,6 @@ figure(2); plot(t_var,V_flowrate);
 figure(2); xlim([0 t_end]);
 figure(2); xlabel('Time (s)')
 figure(2); ylabel('Flow rate (L/min)')
-figure(2); title('Flow rate pump')
+figure(2); title('Variable flow rate over time')
 figure(2); legend({'Flow rate pump'}, 'Location','northwest')
 figure(2); saveas(gcf,'Flow_rate.jpg')
