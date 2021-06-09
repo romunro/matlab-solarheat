@@ -305,7 +305,7 @@ end
 %Plotting%
 %%%%%%%%%%
 
-t_var=T_SC_table(1,:);          %Time variable
+t_var=T_SC_table(1,:)/60;          %Time variable
 T_SC_var=T_SC_table(2,:);       %Outflow temperature solar collector
 T_HV_var=T_HV_table(2,:);       %Outflow temperature heat vessel
 T_HV_inside = T_HV_table(4,:);  %Inside temperature heat vessel
@@ -326,8 +326,8 @@ figure(1); annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocl
 figure(1); ylabel('Temperature (K)')
 figure(1); legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
 
-figure(1); xlim([0 t_end]);
-figure(1); xlabel('Time (s)')
+figure(1); xlim([0 t_end/60]);
+figure(1); xlabel('Time (min)')
 figure(1); title('Outflow temperatures')
 figure(1); saveas(gcf,'Outflow temperature.jpg')
 
