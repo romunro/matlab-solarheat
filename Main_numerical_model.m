@@ -41,13 +41,12 @@ close all;
     c_air = 1007;                               %Specific heat air[J/kgK]
 %Measurements
     D_Cu = 0.012;                               %Diameter of the copper tube [m]
-    D_PolyTube = 0.008;                         %Diameter of the polyurathane pump tubes [m]
+    D_PolyTube = 0.008;                         %Inner diameter of the polyurathane pump tubes [m]
     R_Cu1 = 0.005;                              %Inner radius of the copper tube [m]
     R_Cu2 = 0.006;                              %Outer radius of  the copper tube [m]
     V_air = 0.04911;                            %Volume of the air in the solar collector [m^3]
     V_Al = 8.96*10^(-5);                        %Total volume of the aluminum tape
     L_Cu_SC = 6.63;                             %Length of the copper tube in the solar collector [m]
-    L_CuTube = 6.630;                           %Total length of tube that's exposed to the air [m]
     L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
     L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
     d_frame = 0.05;                             %Thickness of the pinewood frame [m]
@@ -60,7 +59,6 @@ close all;
     R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
     L_Tube_HV = 0.71;                           %PVC length [m]
 %Measurements for in- and outlet connectors
-    D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
     R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
     R_Po2 = 0.006;                              %Outer radius of the polyurethane tube [m]
     L_Tube_HV_to_SC = 3;                        %Half of general setup length, HV to SC [m]
@@ -99,9 +97,9 @@ Steps = t_end/t_step;                   %Amount of steps
 T_HV_table = zeros(3,Steps+1);          %Heat vessel table for data logging
 T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                          %Beginning temperature of water in the heat vessel [K]
+%%Water mass calculations%%
 m_SC_water = 0.512;                     %Max mass of water in the solar collector [kg]
 m_HV_water = 1.2;                       %Max mass of water in the heat vessel  [kg]
-m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;    %Max mass of water in the outlettubing [kg]
 m_hv_frac = 0;                           %Initial fraction hot water to cold water [-]
 
 %%Variable flowrate%%
@@ -122,6 +120,7 @@ T_SC_table = zeros(3,Steps+1);          %Solar collector table for data logging
 T_SC_table(1,:) = 0:t_step:t_end;
 T_SC_out=T_in;                          %Beginning temperature of water in the solar collector [K]
 I_glass = I_sun*e_glass;                %Intensity after absorption of glass plate [W/m^2]
+
 %%Aluminium reflection and absorption rates%%
 dQdt_RadAl = (1-e_Al)*A_RadAl*I_glass;              %Energy that is reflected by the aluminum tape [W]
 dQdt_RadAl_in = (e_Al)*A_RadAl*I_glass;             %Energy that is absorbed by the aluminum tape [W]
@@ -246,7 +245,7 @@ for t=0:t_step:t_end
 
     %%%Heat transfer mechanisms in the solar collector%%%	
     dtQt_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4);          %Heat loss due to radiation [W]                
-    R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_CuTube);                  %Thermal resistance due to conduction in the copper tube [K/W]
+    R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_Cu_SC);                  %Thermal resistance due to conduction in the copper tube [K/W]
     R_Cu_conv = 1 / (h_air*A_AirCu);                                         %Thermal resistance due to convection [K/W]
     R_SC_total = R_CondOut + R_Cu_conv;                                     %The total of all the thermal resistances [K/W]
   
