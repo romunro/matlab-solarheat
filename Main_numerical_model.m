@@ -104,6 +104,10 @@ m_HV_water = 1.2;                       %Max mass of water in the heat vessel  [
 m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;    %Max mass of water in the outlettubing [kg]
 m_hv_frac = 0;                           %Initial fraction hot water to cold water [-]
 
+%%Variable flowrate%%
+Flowrate_Table = zeros(2,Steps+1);          %Table for variable flowrate logging
+Flowrate_Table(1,:) = 0:t_step:t_end;
+
 %%Thermocline HV start values%%
 m_HV_new = 0;                           %Starting mass of hot water in HV  [kg]
 m_HV_old = m_HV_water;                  %Starting mass of cold water in HV [kg]
@@ -155,6 +159,8 @@ for t=0:t_step:t_end
           flowrate = 3;                                                    %Flow rate [L/min]
           m_flow = (flowrate/60/1000)*rho_w*t_step;                        %Mass of water inflow from pump during t_step [kg]
     end
+    Column = round((1/t_step)*t+1);                                         %Table time step counter
+    Flowrate_Table(2,Column)=flowrate;                                      %Assign value for T_HV_out to the right space
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %       Equations for the vessel       %
@@ -304,21 +310,34 @@ t_var=T_SC_table(1,:);          %Time variable
 T_SC_var=T_SC_table(2,:);       %Outflow temperature solar collector
 T_HV_var=T_HV_table(2,:);       %Outflow temperature heat vessel
 T_HV_inside = T_HV_table(4,:);  %Inside temperature heat vessel
+V_flowrate = Flowrate_Table(2,:); %Variable flowrate for pump
 
-hold on
-grid on
 
-plot(t_var,T_SC_var);
-plot(t_var,T_HV_var);
-plot(t_var,T_HV_inside);
+%%Figure 1 for outflow temperature
+figure(1);hold on
+figure(1);grid on
+figure(1); plot(t_var,T_SC_var);
+figure(1); plot(t_var,T_HV_var);
+figure(1); plot(t_var,T_HV_inside);
 
-annotation('textarrow',[0.8 0.9], [0.82 0.78] ,'String','T = 314.6  K ');
-annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocline effect');
+figure(1); annotation('textarrow',[0.8 0.9], [0.82 0.78] ,'String','T = 314.6  K ');
+figure(1); annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocline effect');
 
-ylabel('Temperature (K)')
-legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
+figure(1); ylabel('Temperature (K)')
+figure(1); legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
 
-xlim([0 t_end]);
-xlabel('Time (s)')
-title('Outflow temperatures')
-saveas(gcf,'Outflow temperature.jpg')
+figure(1); xlim([0 t_end]);
+figure(1); xlabel('Time (s)')
+figure(1); title('Outflow temperatures')
+figure(1); saveas(gcf,'Outflow temperature.jpg')
+
+%%Figure 2 for variable flowrate pump
+figure(2);hold on
+figure(2);grid on
+figure(2); plot(t_var,V_flowrate);
+figure(2); xlim([0 t_end]);
+figure(2); xlabel('Time (s)')
+figure(2); ylabel('Flow rate (L/min)')
+figure(2); title('Flow rate pump')
+figure(2); legend({'Flow rate pump'}, 'Location','northwest')
+figure(2); saveas(gcf,'Flow_rate.jpg')
