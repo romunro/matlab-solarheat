@@ -310,6 +310,7 @@ t_var=T_SC_table(1,:);          %Time variable
 T_SC_var=T_SC_table(2,:);       %Outflow temperature solar collector
 T_HV_var=T_HV_table(2,:);       %Outflow temperature heat vessel
 T_HV_inside = T_HV_table(4,:);  %Inside temperature heat vessel
+t_var_flow = Flowrate_Table(1,:)/60;
 V_flowrate = Flowrate_Table(2,:); %Variable flowrate for pump
 
 
@@ -334,9 +335,9 @@ figure(1); saveas(gcf,'Outflow temperature.jpg')
 %%Figure 2 for variable flowrate pump
 figure(2);hold on
 figure(2);grid on
-figure(2); plot(t_var,V_flowrate);
-figure(2); xlim([0 t_end]);
-figure(2); xlabel('Time (s)')
+figure(2); plot(t_var_flow,V_flowrate);
+figure(2); xlim([0 t_end/60]);
+figure(2); xlabel('Time (min)')
 figure(2); ylabel('Flow rate (L/min)')
 figure(2); title('Variable flow rate over time')
 figure(2); legend({'Flow rate pump'}, 'Location','northwest')
