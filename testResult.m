@@ -50,7 +50,7 @@ figure(1); legend({'Testing inflow temperature solar collector','Numerical inflo
 figure(1); xlim([0 20]);
 figure(1); xlabel('Time (min)')
 figure(1); title('Outflow temperatures')
-figure(1); saveas(gcf,'figures\testResult.jpg')
+figure(1); saveas(gcf,'figures\testTemperature.jpg')
 
 %%Figure 2 for variable flowrate pump
 % figure(2);hold on
