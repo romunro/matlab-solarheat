@@ -19,4 +19,4 @@ legend({'Heat vessel temperature'}, 'Location','southeast')
 xlim([0, 3]);
 xlabel('Flow rate [L/min]')
 title('Heat vessel end temperatures depending on flow rate')
-saveas(gcf,'findFlowrate.jpg')
+saveas(gcf,'figures\findFlowrate.jpg')

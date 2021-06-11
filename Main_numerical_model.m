@@ -335,7 +335,7 @@ figure(1); legend({'Outflow temperature solar collector','Outflow temperature he
 figure(1); xlim([0 t_end/60]);
 figure(1); xlabel('Time (min)')
 figure(1); title('Outflow temperatures')
-figure(1); saveas(gcf,'Outflow temperature.jpg')
+figure(1); saveas(gcf,'figures\Outflow temperature.jpg')
 
 %%Figure 2 for variable flowrate pump
 figure(2);hold on
@@ -346,4 +346,4 @@ figure(2); xlabel('Time (min)')
 figure(2); ylabel('Flow rate (L/min)')
 figure(2); title('Variable flow rate over time')
 figure(2); legend({'Flow rate pump'}, 'Location','northwest')
-figure(2); saveas(gcf,'Flow_rate.jpg')
+figure(2); saveas(gcf,'figures\Flow_rate.jpg')

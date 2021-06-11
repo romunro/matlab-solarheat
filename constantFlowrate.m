@@ -77,7 +77,7 @@ close all;
     I_sun = 1000;                               %Intensity of the artificial sun [W/m^2]
 %Temperatures
     T_sur = 293;                                %Temperature of the surroundings [K]
-    T_in = 293;                                 %Temperature of the incoming water [K]
+    T_in = 296.35;                                 %Temperature of the incoming water [K]
 %Density
     rho_w = 1000;                               %Density of water [kg/m^3]
     rho_Cu = 8.9*10^3;                          %Density of copper [kg/m^3]
@@ -297,8 +297,8 @@ plot(t_var,T_SC_var);
 plot(t_var,T_HV_var);
 plot(t_var,T_HV_inside);
 
-annotation('textarrow',[0.8 0.9], [0.82 0.78] ,'String','T = 314.4 K');
-annotation('textarrow', [0.25 0.15], [0.25 0.2], 'String', 'Thermocline effect');
+annotation('textarrow',[0.8 0.905], [0.85 0.82] ,'String','T = 314.4 K');
+annotation('textarrow', [0.25 0.145], [0.20 0.16], 'String', 'Thermocline effect');
 
 ylabel('Temperature (K)')
 legend({'Outflow temperature solar collector','Outflow temperature heat vessel','Inside temperature heat vessel'}, 'Location','northwest')
@@ -306,4 +306,4 @@ legend({'Outflow temperature solar collector','Outflow temperature heat vessel',
 xlim([0 t_end/60]);
 xlabel('Time (min)')
 title('Outflow temperatures')
-saveas(gcf,'Constantflow_temperature.jpg')
+saveas(gcf,'figures\Constantflow_temperature.jpg')
