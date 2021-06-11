@@ -75,7 +75,7 @@ close all;
     I_sun = 1000;                               %Intensity of the artificial sun [W/m^2]
 %Temperatures
     T_sur = 293;                                %Temperature of the surroundings [K]
-    T_in = 293;                                 %Temperature of the incoming water [K]
+    T_in = 296.35;                                 %Temperature of the incoming water [K]
 %Density
     rho_w = 1000;                               %Density of water [kg/m^3]
     rho_Cu = 8.9*10^3;                          %Density of copper [kg/m^3]
@@ -259,8 +259,9 @@ for t=0:t_step:t_end
     
     %%%%Log SC data for plotting%%%%
     Column = round((1/t_step)*t+1);                                         %Table time step counter
-    T_SC_table(2,Column)=T_SC_out;                                          %Assign value for T to the right space
-    T_SC_table(3,Column)=delta_T;                                           %Assign value for T to the right space
+    T_SC_table(2,Column)=T_SC_in;
+    T_SC_table(3,Column)=T_SC_out;                                          %Assign value for T to the right space
+    T_SC_table(4,Column)=delta_T;                                           %Assign value for T to the right space
     
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -306,12 +307,17 @@ end
 %%%%%%%%%%
 
 t_var=T_SC_table(1,:)/60;          %Time variable
-T_SC_var=T_SC_table(2,:);       %Outflow temperature solar collector
+T_SC_var=T_SC_table(3,:);       %Outflow temperature solar collector
 T_HV_var=T_HV_table(2,:);       %Outflow temperature heat vessel
 T_HV_inside = T_HV_table(4,:);  %Inside temperature heat vessel
 t_var_flow = Flowrate_Table(1,:)/60;
 V_flowrate = Flowrate_Table(2,:); %Variable flowrate for pump
-
+%%Save results in .csv
+writematrix(T_SC_table(1,:), 'numericalData\numericalTemp.csv');
+writematrix(T_SC_table(2,:), 'numericalData\numericalTemp.csv','WriteMode','append');
+writematrix(T_SC_table(3,:), 'numericalData\numericalTemp.csv','WriteMode','append');
+writematrix(Flowrate_Table(1,:), 'numericalData\numericalFlow.csv');
+writematrix(Flowrate_Table(2,:), 'numericalData\numericalFlow.csv','WriteMode','append');
 
 %%Figure 1 for outflow temperature
 figure(1);hold on
@@ -320,7 +326,7 @@ figure(1); plot(t_var,T_SC_var);
 figure(1); plot(t_var,T_HV_var);
 figure(1); plot(t_var,T_HV_inside);
 
-figure(1); annotation('textarrow',[0.8 0.9], [0.82 0.78] ,'String','T = 314.6  K ');
+figure(1); annotation('textarrow',[0.8 0.9], [0.85 0.82] ,'String','T = 316.8  K ');
 figure(1); annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocline effect');
 
 figure(1); ylabel('Temperature (K)')
