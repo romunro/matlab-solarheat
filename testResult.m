@@ -49,16 +49,17 @@ figure(1); legend({'Testing inflow temperature solar collector','Numerical inflo
 
 figure(1); xlim([0 20]);
 figure(1); xlabel('Time (min)')
-figure(1); title('Outflow temperatures')
+figure(1); title('Testing result: Outflow temperatures')
 figure(1); saveas(gcf,'figures\testTemperature.jpg')
 
 %%Figure 2 for variable flowrate pump
-% figure(2);hold on
-% figure(2);grid on
-% figure(2); plot(t_var_flow,V_flowrate);
-% figure(2); xlim([0 t_end/60]);
-% figure(2); xlabel('Time (min)')
-% figure(2); ylabel('Flow rate (L/min)')
-% figure(2); title('Variable flow rate over time')
-% figure(2); legend({'Flow rate pump'}, 'Location','northwest')
-% figure(2); saveas(gcf,'Flow_rate.jpg')
+figure(2);hold on
+figure(2);grid on
+figure(2); plot(testingFlow(:, 1)/3600, testingFlow(:, 2));
+figure(2); plot(numericalFlow(1, :)/60, numericalFlow(2, :));
+figure(2); xlim([0 20]);
+figure(2); xlabel('Time (min)')
+figure(2); ylabel('Flow rate (L/min)')
+figure(2); title('Testing result: Variable flow rate over time')
+figure(2); legend({'Testing flow rate','Numerical flow rate'}, 'Location','northwest')
+figure(2); saveas(gcf,'figures\testFlow_rate.jpg')
