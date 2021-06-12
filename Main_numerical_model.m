@@ -19,8 +19,6 @@ close all;
     e_foam = 0.9;                               %foam foil
     e_Al = 0.04;                                %Aluminum tape
 %Thermal conductivity
-%     k_air = 0.026;                              %Air [W/(m*K)]
-%     k_tempex =0.03;                             %Tempex plate [W/(m*K)]
     k_Cu = 400;                                 %Copper tube [W/(m*K)]
     k_wood = 0.12;                              %Wood casing [W/(m*K)]
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
