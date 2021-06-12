@@ -287,9 +287,13 @@ for t=0:t_step:t_end
     T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T [K]
 
     %Air temperature:
-    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/d_frame;          %Heat flow to the environment through the wood by conduction [W/m^2]
-    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;           %Heat flow to the environment through the glass by conduction [W/m^2]
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdT_SC_tube; %Total heat flow air inside solar collector [W/m^2]
+    R_air_CondEnv = d_frame / (k_wood * A_frame);       %Thermal resistance conduction frame
+    R_air_CondGlass = d_glass / (k_glass*A_glass);      %Thermal resistance conduction glass
+    R_air_ConvEnv = 1 / (h_out_air* A_frame);           %Thermal resistance convection frame
+    R_air_ConvGlass_inv = 1 / (h_out_air* A_glass);         %Thermal resistance convection glass
+    R_air_total = 1/(R_air_CondEnv + R_air_ConvEnv) + 1/(R_air_CondGlass + R_air_ConvGlass_inv^-1); %1/Total thermal resistance, frame and glass in parallel
+    dQdT_air_CondConv = -((T_air - T_sur ) / R_air_total);                  %Heat flow via conduction and convection of frame and glass [W/m^2]
+    dQdt_air_total = dQdt_Al_conv + dQdT_SC_tube + dQdT_air_CondConv;       %Total heat flow of air inside solar collector [W/m^2]
      
     delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
     T_air = T_air + delta_T;                                                %Resulting air temperature [K] 
@@ -319,7 +323,7 @@ figure(1); plot(t_var,T_SC_var);
 figure(1); plot(t_var,T_HV_var);
 figure(1); plot(t_var,T_HV_inside);
 
-figure(1); annotation('textarrow',[0.8 0.9], [0.85 0.79] ,'String','T = 315.8  K ');
+figure(1); annotation('textarrow',[0.8 0.9], [0.88 0.845] ,'String','T = 317.7  K ');
 figure(1); annotation('textarrow', [0.45 0.33], [0.25 0.25], 'String', 'Thermocline effect');
 
 figure(1); ylabel('Temperature (K)')
