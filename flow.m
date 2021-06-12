@@ -1,4 +1,5 @@
 function y = flow(flowrate)
+%%
 %%%%%%%%%%%
 %Constants%
 %%%%%%%%%%%
@@ -7,17 +8,14 @@ function y = flow(flowrate)
     v_out = 4.5;                                %Velocity of air outside the solar collector [m/s]
     v_in = 0;                                   %Velocity of air inside the solar collector [m/s]
 %Emissivity
-    e_Cu = 0.22;                                %Copper tube, value 0.052
-    e_glass = 0.95;
+    e_Cu = 0.22;                                %Matte copper tube
+    e_glass = 0.95;                             %Glass plate 
     e_PVC = 0.91;                               %PVC tube
     e_foam = 0.9;                               %foam foil
     e_Al = 0.04;                                %Aluminum tape
-    e_paint = 0.95;                             %Emissivity of black paint (for comparison)
-    e_wood = 0.94;
-    e_CuMatte = 0.22;                           %Emissivity of the copper tube after making it less reflective (for comparison)
 %Thermal conductivity
-    k_air = 0.026;                              %Air [W/(m*K)]
-    k_tempex =0.03;                             %Tempex plate [W/(m*K)]
+%     k_air = 0.026;                              %Air [W/(m*K)]
+%     k_tempex =0.03;                             %Tempex plate [W/(m*K)]
     k_Cu = 400;                                 %Copper tube [W/(m*K)]
     k_wood = 0.12;                              %Wood casing [W/(m*K)]
     k_Po = 0.13;                                %Polyurethane tube [W/(m*K)]
@@ -35,26 +33,22 @@ function y = flow(flowrate)
     c_air = 1007;                               %Specific heat air[J/kgK]
 %Measurements
     D_Cu = 0.012;                               %Diameter of the copper tube [m]
-    D_PolyTube = 0.008;                         %Diameter of the polyurathane pump tubes [m]
+    D_PolyTube = 0.008;                         %Inner diameter of the polyurathane pump tubes [m]
     R_Cu1 = 0.005;                              %Inner radius of the copper tube [m]
     R_Cu2 = 0.006;                              %Outer radius of  the copper tube [m]
     V_air = 0.04911;                            %Volume of the air in the solar collector [m^3]
     V_Al = 8.96*10^(-5);                        %Total volume of the aluminum tape
     L_Cu_SC = 6.63;                             %Length of the copper tube in the solar collector [m]
-    L_CuTube = 6.630;                           %Total length of tube that's exposed to the air [m]
-    L_PolyTube1 = 3;                            %Total length of polyurathane pump tube 1 [m]
-    L_PolyTube2 = 3;                            %Total length of polyurathane pump tube 2 [m]
     d_frame = 0.05;                             %Thickness of the pinewood frame [m]
 %Measurements Heat storage vessel
     D_pvc = 0.050;                              %Diameter PVC tube [m]
-    R_pvcThick = 0.0018;                        %PVC wall thickness
+    R_pvcThick = 0.0018;                        %PVC wall thickness [m]
     R_pvc1 = (D_pvc/2) - R_pvcThick;            %Inner Radius PVC tube [m]
     R_pvc2 = (D_pvc/2);                         %Outer Radius PVC tube [m]
     N_insLayers = 6;                            %Number of insulating polyethylene foam foil layers [m]
     R_polyFoil = N_insLayers * 0.003;           %Radius thickness polyethylene foam foil [m]
     L_Tube_HV = 0.71;                           %PVC length [m]
 %Measurements for in- and outlet connectors
-    D_Po = 0.012;                               %Diameter of the polyurethane tube [m]
     R_Po1 = 0.004;                              %Inner radius of the polyurethane tube [m]
     R_Po2 = 0.006;                              %Outer radius of the polyurethane tube [m]
     L_Tube_HV_to_SC = 3;                        %Half of general setup length, HV to SC [m]
@@ -71,7 +65,7 @@ function y = flow(flowrate)
     I_sun = 1000;                               %Intensity of the artificial sun [W/m^2]
 %Temperatures
     T_sur = 293;                                %Temperature of the surroundings [K]
-    T_in = 293;                                 %Temperature of the incoming water [K]
+    T_in = 296.35;                              %Starting temperature of water [K]
 %Density
     rho_w = 1000;                               %Density of water [kg/m^3]
     rho_Cu = 8.9*10^3;                          %Density of copper [kg/m^3]
@@ -93,10 +87,14 @@ Steps = t_end/t_step;                   %Amount of steps
 T_HV_table = zeros(3,Steps+1);          %Heat vessel table for data logging
 T_HV_table(1,:) = 0:t_step:t_end;
 T_HV_out=T_in;                          %Beginning temperature of water in the heat vessel [K]
+%%Water mass calculations%%
 m_SC_water = 0.512;                     %Max mass of water in the solar collector [kg]
 m_HV_water = 1.2;                       %Max mass of water in the heat vessel  [kg]
-m_out_tube =1/4*pi*((D_Po -2*0.002)^2)*L_Tube_HV_to_SC ;    %Max mass of water in the outlettubing [kg]
 m_hv_frac = 0;                           %Initial fraction hot water to cold water [-]
+
+%%Variable flowrate%%
+Flowrate_Table = zeros(2,Steps+1);          %Table for variable flowrate logging
+Flowrate_Table(1,:) = 0:t_step:t_end;
 
 %%Thermocline HV start values%%
 m_HV_new = 0;                           %Starting mass of hot water in HV  [kg]
@@ -104,14 +102,15 @@ m_HV_old = m_HV_water;                  %Starting mass of cold water in HV [kg]
 T_HV_inside = T_in;                     %Starting temperature HV [K]
 
 %%Tube Heat vessel --> Solar Collector%%
-m_PolyTube1_water = (1/4)*pi*D_PolyTube^2*L_PolyTube1*rho_w;                %Maximum amount of water in the tube [kg]
-T_SC_in = T_in;                                                             %Starting temperature [K]
+m_PolyTube1_water = (1/4)*pi*D_PolyTube^2*L_Tube_HV_to_SC*rho_w;  %Maximum amount of water in the tube [kg]
+T_SC_in = T_in;                         %Starting temperature [K]
 
 %%SOLAR COLLECTOR%%
 T_SC_table = zeros(3,Steps+1);          %Solar collector table for data logging
 T_SC_table(1,:) = 0:t_step:t_end;
 T_SC_out=T_in;                          %Beginning temperature of water in the solar collector [K]
 I_glass = I_sun*e_glass;                %Intensity after absorption of glass plate [W/m^2]
+
 %%Aluminium reflection and absorption rates%%
 dQdt_RadAl = (1-e_Al)*A_RadAl*I_glass;              %Energy that is reflected by the aluminum tape [W]
 dQdt_RadAl_in = (e_Al)*A_RadAl*I_glass;             %Energy that is absorbed by the aluminum tape [W]
@@ -122,7 +121,7 @@ d_glass = 0.004;                                                            %Thi
 A_glass = 0.67*(1.640+0.080);                                               %Area of the glass plate [m]
 
 %%Tube Solar Collector --> Heat vessel%%
-m_PolyTube2_water = (1/4)*pi*D_PolyTube^2*L_PolyTube2*rho_w;                %Maximum amount of water in the tube [kg]
+m_PolyTube2_water = (1/4)*pi*D_PolyTube^2*L_Tube_SC_to_HV*rho_w;                %Maximum amount of water in the tube [kg]
 T_HV_in = T_in;                                                             %Starting temperature [K]
 
 %%General%%
@@ -139,7 +138,7 @@ for t=0:t_step:t_end
     %       Equations for the vessel       %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     %%%%%Insulation heat loss%%%%
-    R_HV_PVC_cond = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_Tube_HV));                 %Thermal resitance of conduction through PVC [K/W]
+    R_HV_PVC_cond = R_pvc1/(k_PVC*(2*pi*R_pvc2*L_Tube_HV));                     %Thermal resitance of conduction through PVC [K/W]
     R_HV_ins_Cond =  (log((R_pvc2 + R_polyFoil)/R_pvc2)) / (k_foil*A_HV);   %Thermal resitance of conduction through poly foam foil [K/W]
     R_HV_ins_Conv = 1 / (h_air*A_HV);                                       %Thermal resitance of convection outside poly foam foil [K/W]
     HL_RadOut_PVC = e_PVC * sigma * A_HV * (T_HV_inside^4 - T_sur^4);   %Heat loss due to radiation PVC [W]
@@ -183,18 +182,18 @@ for t=0:t_step:t_end
     end
     
     %%%%Log HV data for plotting%%%%
-    Column = round((1/t_step)*t+1);       %Table time step counter
-    T_HV_table(2,Column)=T_HV_out;        %Assign value for T_HV_out to the right space
-    T_HV_table(3,Column)=dQdt_HV_total;   %Assign value for dQdt_HV_total to the right space
-    T_HV_table(4,Column)=T_HV_inside;     %Assign value for inside temperature heat vessel
+    Column = round((1/t_step)*t+1);                                         %Table time step counter
+    T_HV_table(2,Column)=T_HV_out;                                          %Assign value for T_HV_out to the right space
+    T_HV_table(3,Column)=dQdt_HV_total;                                     %Assign value for dQdt_HV_total to the right space
+    T_HV_table(4,Column)=T_HV_inside;                                       %Assign value for inside temperature heat vessel
     
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Tube 1 Heat vessel --> Solar collector%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%Inflow temperature%%%%
-    m_PolyTube1_old = m_PolyTube1_water - m_flow;  %Mass of water from t-t_step [kg]
-    m_PolyTube1_new = m_flow;                      %Mass of water added to the heat vessel during t_step [kg]
+    m_PolyTube1_old = m_PolyTube1_water - m_flow;                           %Mass of water from t-t_step [kg]
+    m_PolyTube1_new = m_flow;                                               %Mass of water added to the heat vessel during t_step [kg]
     T_SC_in = (m_PolyTube1_old*T_SC_in + m_PolyTube1_new*T_HV_out)/(m_PolyTube1_old+m_PolyTube1_new); %Inflow temperature [K] 
     
     %%%%Thermal resistance%%%%
@@ -213,15 +212,15 @@ for t=0:t_step:t_end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %  Equations for the solar collector   %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    m_SC_old = m_SC_water - m_flow;        %Mass of water from t-t_step [kg]
-    m_SC_new = m_flow;                     %Mass of water added to the solar collector during t_step [kg]
+    m_SC_old = m_SC_water - m_flow;                                         %Mass of water from t-t_step [kg]
+    m_SC_new = m_flow;                                                      %Mass of water added to the solar collector during t_step [kg]
     T_SC_out = (m_SC_old*c_water*T_SC_out + m_Cu*c_Cu*T_SC_out + m_SC_new*c_water*T_SC_in)/(m_SC_old*c_water + m_Cu*c_Cu + m_SC_new*c_water);
 
     %%%Heat transfer mechanisms in the solar collector%%%	
-    dtQt_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4); %Heat loss due to radiation [W]                
-    R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_CuTube);  %Thermal resistance due to conduction in the copper tube [K/W]
-    R_Cu_conv = 1 / (h_air*A_AirCu);                    %Thermal resistance due to convection [K/W]
-    R_SC_total = R_CondOut + R_Cu_conv;                 %The total of all the thermal resistances [K/W]
+    dtQt_RadOut = e_Cu * sigma * A_AirCu * (T_SC_out^4 - T_air^4);          %Heat loss due to radiation [W]                
+    R_CondOut = (log(R_Cu2/R_Cu1)) / (2*pi*k_Cu*L_Cu_SC);                  %Thermal resistance due to conduction in the copper tube [K/W]
+    R_Cu_conv = 1 / (h_in_air*A_AirCu);                                    %Thermal resistance due to convection [K/W]
+    R_SC_total = R_CondOut + R_Cu_conv;                                    %The total of all the thermal resistances [K/W]
   
     %%%%Total heat flow solar collector%%%%
     dQdT_SC_tube = ((T_SC_out - T_air) / R_SC_total);
@@ -232,16 +231,17 @@ for t=0:t_step:t_end
     T_SC_out=T_SC_out+delta_T;                                              %Resulting outflow temperature [K]
     
     %%%%Log SC data for plotting%%%%
-    Column = round((1/t_step)*t+1);     %Table time step counter
-    T_SC_table(2,Column)=T_SC_out;      %Assign value for T to the right space
-    T_SC_table(3,Column)=delta_T;       %Assign value for T to the right space
+    Column = round((1/t_step)*t+1);                                         %Table time step counter
+    T_SC_table(2,Column)=T_SC_in;
+    T_SC_table(3,Column)=T_SC_out;                                          %Assign value for T to the right space
+    T_SC_table(4,Column)=delta_T;                                           %Assign value for T to the right space
     
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Tube 2 Solar collector --> Heat vessel%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    m_PolyTube2_old = m_PolyTube1_water - m_flow;   %Mass of water from t-t_step [kg]
-    m_PolyTube2_new = m_flow;                       %Mass of water added to the heat vessel during t_step [kg]
+    m_PolyTube2_old = m_PolyTube1_water - m_flow;                           %Mass of water from t-t_step [kg]
+    m_PolyTube2_new = m_flow;                                               %Mass of water added to the heat vessel during t_step [kg]
    
     T_HV_in = (m_PolyTube2_old*T_HV_in + m_HV_new*T_SC_out)/(m_PolyTube2_old+m_HV_new); %Average internal HV temperature with inflow from SC [K]
     
@@ -251,7 +251,6 @@ for t=0:t_step:t_end
     
     %%%%Total flow
     dQdt_PolyTube2_total = -((T_HV_in - T_sur ) / R_tube_in_total);         %Total heat flow general setup SC to HV [W/m^2]
-
     delta_T = (dQdt_PolyTube2_total*t_step/(m_PolyTube2_water*c_water));    %Resulting delta T of heat flow [K]
     T_HV_in = T_HV_in+delta_T;                                              %Resulting outflow temperature [K]
         
@@ -260,19 +259,22 @@ for t=0:t_step:t_end
     %            Air Temperature           %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %To calculate dQdt_air_total, first the temperature of the aluminum tape has to be determined:
-    dQdt_Al_conv = h_air*A_AirTape*(T_Al-T_air);        %Convective heat loss aluminium tape [W/m^2]
-    dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;       %Total heat flow aluminium tape [W/m^2]
-    delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);       %Resulting delta T aluminium tape [K]
-    T_Al = T_Al + delta_T;                              %Temperature aluminium tape after delta T [K]
+    dQdt_Al_conv = h_in_air*A_AirTape*(T_Al-T_air);                            %Convective heat loss aluminium tape [W/m^2]
+    dQdt_Al_total = dQdt_RadAl_in - dQdt_Al_conv;                           %Total heat flow aluminium tape [W/m^2]
+    delta_T = (dQdt_Al_total*t_step)/(m_Al*c_Al);                           %Resulting delta T aluminium tape [K]
+    T_Al = T_Al + delta_T;                                                  %Temperature aluminium tape after delta T [K]
 
     %Air temperature:
-    dQdt_CondEnv = -(k_wood * A_frame * (T_air - T_sur))/d_frame;          %Heat flow to the environment through the wood by conduction [W/m^2]
-    dQdt_CondGlass = -(k_glass*A_glass*(T_air - T_sur))/d_glass;           %Heat flow to the environment through the glass by conduction [W/m^2]
-    dQdt_air_total = dQdt_Al_conv + dQdt_CondEnv + dQdt_CondGlass + dQdT_SC_tube; %Total heat flow air inside solar collector [W/m^2]
+    R_air_CondEnv = d_frame / (k_wood * A_frame);       %Thermal resistance conduction frame
+    R_air_CondGlass = d_glass / (k_glass*A_glass);      %Thermal resistance conduction glass
+    R_air_ConvEnv = 1 / (h_out_air* A_frame);           %Thermal resistance convection frame
+    R_air_ConvGlass_inv = 1 / (h_out_air* A_glass);         %Thermal resistance convection glass
+    R_air_total = 1/(R_air_CondEnv + R_air_ConvEnv) + 1/(R_air_CondGlass + R_air_ConvGlass_inv^-1); %1/Total thermal resistance, frame and glass in parallel
+    dQdT_air_CondConv = -((T_air - T_sur ) / R_air_total);                  %Heat flow via conduction and convection of frame and glass [W/m^2]
+    dQdt_air_total = dQdt_Al_conv + dQdT_SC_tube + dQdT_air_CondConv;       %Total heat flow of air inside solar collector [W/m^2]
      
-    delta_T = (dQdt_air_total*t_step)/(m_air*c_air);    %Resulting delta T of heat flow [K]
-    T_air = T_air + delta_T;                            %Resulting air temperature [K]
-    
+    delta_T = (dQdt_air_total*t_step)/(m_air*c_air);                        %Resulting delta T of heat flow [K]
+    T_air = T_air + delta_T;                                                %Resulting air temperature [K] 
 end
 y = max(T_HV_table(2,:));
 end
